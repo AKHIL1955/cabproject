@@ -1,0 +1,246 @@
+/**
+ * Created by amitdhall1 on 12/02/19.
+ */
+var DNS = "https://api.cabbazar.com";
+var razorPayId = "rzp_live_rWLgxkMl3PeRNd";
+var paytmUrl = "https://securegw.paytm.in/theia/processTransaction";
+
+function Api() {}
+
+Api.prototype.base_url = DNS + "/";
+Api.prototype.endPoint = {
+
+    fare: 'fare/estimate/v2',
+
+    visitorRecord: "visitor",
+
+    requestToken: "user/request_token",
+
+    calculateAdvance: "fare/calculateAdvance",
+
+    placeBooking: "booking",
+
+    signup: "user",
+
+    resetPassword: "user/reset_password",
+
+    forgotPassword: "user/forgot",
+
+    verifyPhone: "user/verify_phone",
+
+    bookingRequest: "booking_request",
+
+    coupon: 'coupon',
+
+    click: 'contact/click',
+
+    newsletter: 'newsletter',
+
+    quotationList: "quotation/list_user",
+
+    cancelBooking: "booking_request/cancel_booking_user",
+
+    confirmBooking: "booking_request/confirm_booking_user",
+
+    bookNow: "contact/book_now",
+
+    contactUs: "contact",
+
+    enquiry: "enquiry",
+
+    career: "career",
+
+    fareLocal: "fare/local",
+
+    partner: "partner",
+
+    place: "place",
+
+    google_api_key: ""
+
+};
+
+//GET Address Lat Long
+Api.prototype.getLatLng = function (address, callback) {
+    progressbar.start();
+    var xhttp = new XMLHttpRequest();
+    xhttp.open('GET', 'https://maps.googleapis.com/maps/api/geocode/json?address=' + address + '&region=in&key=' + this.endPoint.google_api_key, true);
+    xhttp.send();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState === 4) {
+            progressbar.stop();
+            progressbar.reset();
+            if (this.status === 200) {
+                var data = JSON.parse(this.responseText);
+                if (data.status === "OK") {
+                    return callback(false, data.results[0].geometry.location);
+                } else if (data.status === "OVER_QUERY_LIMIT") {
+                    return callback("Google API limit exceeded", false);
+                } else {
+                    return callback("Unable to find location for " + address, false);
+                }
+            } else {
+                if (this.status === 500){
+                    return callback("Internal Server Error - " + JSON.parse(this.responseText).message, false);
+                } else {
+                    return callback(JSON.parse(this.responseText).message, false);
+                }
+            }
+        }
+    };
+};
+
+Api.prototype.get = function (endPoint, callback, noToken, partner) {
+    if (this.isLoggedIn(partner) || noToken) {
+        progressbar.start();
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('GET', endPoint, true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+        xhttp.setRequestHeader("Authorization", this.getToken(partner));
+        xhttp.send();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState === 4) {
+                progressbar.stop();
+                progressbar.reset();
+                if (this.status === 200) {
+                    return callback(false, this.responseText);
+                } else {
+                    if (this.status === 500){
+                        return callback("Internal Server Error", false);
+                    } else {
+                        return callback(JSON.parse(this.responseText).message, false);
+                    }
+                }
+            }
+        };
+    } else {
+        window.location.href = '/login';
+    }
+};
+
+Api.prototype.post = function (jsonObj, endPoint, callback, noToken, partner) {
+    if (this.isLoggedIn(partner) || noToken) {
+        progressbar.start();
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('POST', endPoint, true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+        xhttp.setRequestHeader("Authorization", this.getToken(partner));
+        xhttp.send(JSON.stringify(jsonObj));
+        xhttp.onreadystatechange = function() {
+            if (this.readyState === 4) {
+                progressbar.stop();
+                progressbar.reset();
+                if (this.status === 200) {
+                    return callback(false, this.responseText);
+                } else {
+                    if (this.status === 500){
+                        return callback("Internal Server Error", false);
+                    } else {
+                        return callback(JSON.parse(this.responseText).message, false);
+                    }
+                }
+            }
+        };
+    } else {
+        window.location.href = '/login';
+    }
+};
+
+Api.prototype.postFormData = function (formData, endPoint, callback, noToken, partner) {
+    if (this.isLoggedIn(partner) || noToken) {
+        progressbar.start();
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('POST', endPoint, true);
+        xhttp.setRequestHeader("Authorization", this.getToken(partner));
+        xhttp.send(formData);
+        xhttp.onreadystatechange = function() {
+            if (this.readyState === 4) {
+                progressbar.stop();
+                progressbar.reset();
+                if (this.status === 200) {
+                    return callback(false, this.responseText);
+                } else {
+                    if (this.status === 500){
+                        return callback("Internal Server Error", false);
+                    } else {
+                        return callback(JSON.parse(this.responseText).message, false);
+                    }
+                }
+            }
+        };
+    } else {
+        window.location.href = '/login';
+    }
+};
+
+Api.prototype.put = function (jsonObj, endPoint, callback, noToken, partner) {
+    if (this.isLoggedIn(partner) || noToken) {
+        progressbar.start();
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('PUT', endPoint, true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+        xhttp.setRequestHeader("Authorization", this.getToken(partner));
+        xhttp.send(JSON.stringify(jsonObj));
+        xhttp.onreadystatechange = function() {
+            if (this.readyState === 4) {
+                progressbar.stop();
+                progressbar.reset();
+                if (this.status === 200) {
+                    return callback(false, this.responseText);
+                } else {
+                    if (this.status === 500){
+                        return callback("Internal Server Error", false);
+                    } else {
+                        return callback(JSON.parse(this.responseText).message, false);
+                    }
+                }
+            }
+        };
+    } else {
+        window.location.href = '/login';
+    }
+};
+
+Api.prototype.delete = function (endPoint, callback, noToken, partner) {
+    if (this.isLoggedIn(partner) || noToken) {
+        progressbar.start();
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('DELETE', endPoint, true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+        xhttp.setRequestHeader("Authorization", this.getToken(partner));
+        xhttp.send();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState === 4) {
+                progressbar.stop();
+                progressbar.reset();
+                if (this.status === 200) {
+                    return callback(false, this.responseText);
+                } else {
+                    if (this.status === 500){
+                        return callback("Internal Server Error", false);
+                    } else {
+                        return callback(JSON.parse(this.responseText).message, false);
+                    }
+                }
+            }
+        };
+    } else {
+        window.location.href = '/login';
+    }
+};
+
+Api.prototype.getToken = function (partner) {
+    if (partner){
+        return sessionStorage.getItem('cabbazar_partner_login_token');
+    } else {
+        return sessionStorage.getItem('cabbazar_user_login_token');
+    }
+};
+
+Api.prototype.isLoggedIn = function (partner) {
+    if (partner){
+        return sessionStorage.getItem('cabbazar_partner_login_token') ? true : false;
+    } else {
+        return sessionStorage.getItem('cabbazar_user_login_token') ? true : false;
+    }
+};
